@@ -1,0 +1,100 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Kullanıcı modeli
+model User {
+  id            String       @id @default(cuid())
+  name          String
+  email         String       @unique
+  password      String
+  role          String       @default("USER")
+  phoneNumber   String
+  appointments  Appointment[]
+  messagesSent  Message[]    @relation("SentMessages")
+  messagesReceived Message[] @relation("ReceivedMessages")
+  image         String?      // Profil resmi (opsiyonel)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+// Berber modeli
+model Barber {
+  id            String       @id @default(cuid())
+  name          String
+  email         String       @unique
+  password      String
+  phoneNumber   String
+  appointments  Appointment[]
+  services      Service[]
+  image         String?      // Profil resmi (opsiyonel)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+// Hizmet modeli
+model Service {
+  id          String       @id @default(cuid())
+  name        String
+  price       Float
+  appointments Appointment[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+// Randevu modeli
+model Appointment {
+  id          String    @id @default(cuid())
+  date        DateTime
+  status      String    @default("PENDING") // PENDING, CONFIRMED, CANCELLED
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  barberId    String
+  barber      Barber    @relation(fields: [barberId], references: [id])
+  serviceId   String
+  service     Service   @relation(fields: [serviceId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// Mesaj modeli
+model Message {
+  id          String    @id @default(cuid())
+  content     String
+  senderId    String
+  sender      User      @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId  String
+  receiver    User      @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// Kullanıcı rolleri
+enum Role {
+  USER
+  ADMIN
+  BARBER
+}
+
+// Randevu durumları
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+model BarberShop {
+  id    Int    @id @default(autoincrement())
+  name  String
+  address String
+  phone  String
+} 
